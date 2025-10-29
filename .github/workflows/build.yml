@@ -2,7 +2,7 @@ name: Docker
 
 on:
   schedule:
-    - cron: "00 12 * * *"
+    - cron: "0 0 * * *"
   push:
     branches:
       - main
@@ -41,17 +41,18 @@ jobs:
         uses: docker/metadata-action@master
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: type=edge
+          tags: |
+            type=sha,prefix={{branch}}-
+            type=edge
 
       - id: build-and-push
         uses: docker/build-push-action@master
         with:
-          context: .
-          pull: true
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/s390x
+          annotations: ${{ steps.meta.outputs.annotations }}
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
